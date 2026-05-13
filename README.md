@@ -12,6 +12,14 @@ Pure JavaScript, no dependencies, ~220 lines.
 
 ---
 
+## Installation
+
+```bash
+npm install @cosiu/polydix
+```
+
+---
+
 ## How It Works
 
 ```
@@ -42,7 +50,8 @@ Output: [PolygonA, PolygonB]
 ### Example
 
 ```js
-const Polydix = require('./polydix');
+const Polydix = require('@cosiu/polydix');
+// or: const Polydix = require('./polydix');
 
 const polygon = [
   [0, 0], [10, 0], [10, 10], [0, 10], [0, 0]
