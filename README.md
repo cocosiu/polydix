@@ -1,62 +1,101 @@
-# PolygonSplitter
+# Polydix
 
-## English
+A lightweight zero-dependency polygon splitting utility — cut a closed polygon with a polyline and get two polygons back.
 
-### Overview
-`PolygonSplitter` is a lightweight Node.js utility class for splitting polygons using polylines. It provides a simple, intuitive API to process polygon geometries in 2D space. Perfect for GIS, mapping, or CAD-related projects that need polygon cutting logic without heavy dependencies.
+---
 
-### Features
-- Split a closed polygon with a polyline
-- Handles point-in-polygon detection
-- Automatically inserts intersection points on polygon edges
-- Returns two resulting polygons after the split
-- Pure JavaScript, no external dependencies
+## Overview
 
-### Installation
-```bash
-# Clone the repository
-git clone https://github.com/cosiu1994-debug/PolygonSplitter.git
-cd PolygonSplitter
+Polydix splits a closed 2D polygon along a polyline (cutting path) and returns two resulting sub-polygons. It handles intersection detection, edge interpolation, and polygon reconstruction automatically.
 
-# Or install via npm if published
-npm install polygon-splitter
+Pure JavaScript, no dependencies, ~220 lines.
 
+---
 
-Usage
-const PolygonSplitter = require('polygon-splitter');
+## How It Works
 
-const polygon = [[0,0],[10,0],[10,10],[0,10],[0,0]]; // must be closed
-const polyline = [[5,-1],[5,11]];
+```
+Input: closed polygon + polyline (≥2 points)
+  │
+  ├── 1. Classify polyline points: inside / outside / on edge
+  ├── 2. Find entry point (outside→inside) and exit point (inside→outside)
+  ├── 3. Compute intersection points on polygon boundary
+  ├── 4. Insert intersection points into boundary vertex sequence
+  └── 5. Walk the boundary twice → two closed sub-polygons
 
-const [polyA, polyB] = PolygonSplitter.split(polygon, polyline);
+Output: [PolygonA, PolygonB]
+```
 
-console.log('Polygon A:', polyA);
-console.log('Polygon B:', polyB);
+---
 
+## API
 
-API
-PolygonSplitter.split(polygon, polyline)
+### `Polydix.split(polygon, polyline)`
 
-polygon: Array of [x, y] points, must be closed (first point = last point)
+| Param | Type | Description |
+|---|---|---|
+| `polygon` | `[x,y][]` | Closed polygon, first point = last point |
+| `polyline` | `[x,y][]` | Cutting path, at least 2 points |
 
-polyline: Array of [x, y] points, at least 2 points
+**Returns:** `[PolygonA, PolygonB]` — two closed polygons
 
-returns: [PolygonA, PolygonB] — two closed polygons
+### Example
 
-Other internal methods (for reference):
+```js
+const Polydix = require('./polydix');
 
-_validateInput(poly, cutter)
+const polygon = [
+  [0, 0], [10, 0], [10, 10], [0, 10], [0, 0]
+];
 
-_approxEqual(a, b, eps)
+const cutter = [
+  [5, -1], [5, 11]
+];
 
-_closePolygon(p)
+const [polyA, polyB] = Polydix.split(polygon, cutter);
 
-_pointInPolygon(pt, poly)
+console.log('Left:',  polyA);  // left half
+console.log('Right:', polyB);  // right half
+```
 
-_pointOnSegment(p, a, b, eps)
+---
 
-_lineIntersection(A, B, C, D)
+## Features
 
-_interpPoint(A, B, poly)
+| Feature | Description |
+|---|---|
+| Pure math | No dependencies, pure JavaScript geometry |
+| Zero deps | Works anywhere JS runs (Node, browser) |
+| Shape-preserving | Sub-polygons remain closed and orientation-consistent |
+| Edge cases | Handles point-on-edge, collinear segments |
+| Precision | Floating-point threshold `1e-6` |
 
-_insertPoints(poly, pin, pout)
+---
+
+## Internal Methods
+
+| Method | Purpose |
+|---|---|
+| `_approxEqual(a, b, eps?)` | Point equality check |
+| `_closePolygon(p)` | Ensure polygon is closed |
+| `_pointInPolygon(pt, poly)` | Ray casting: is point inside? |
+| `_pointOnSegment(p, a, b)` | Is point on edge segment? |
+| `_lineIntersection(A, B, C, D)` | Segment-segment intersection |
+| `_interpPoint(A, B, poly)` | Find cut point on polygon edge |
+| `_insertPoints(poly, pin, pout)` | Insert intersection points into boundary |
+
+---
+
+## Use Cases
+
+- GIS / mapping — split land parcels
+- CAD — partition planar regions
+- SVG / Canvas — interactive shape cutting
+- Game dev — destroyable geometry
+- Education — computational geometry
+
+---
+
+## License
+
+MIT
